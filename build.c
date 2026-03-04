@@ -34,13 +34,6 @@ int main(int argc, char* argv[])
 	cmd_append(&cmd, "src/shaders/main.slang", "-o", "shader.spv");
 	assert(cmd_run(&cmd, 0));
 
-	// Compile C libraries (need separate compilation unit, unfortunatly)
-	cmd_append(&cmd, "clang", "-c", "src/libraries.c");
-	cmd_append(&cmd, "-Wno-deprecated-declarations"); // .. Who asked?
-	cmd_append(&cmd, "-Wno-microsoft-include"); // This is strange
-	cmd_append(&cmd, "-o", "libraries.c.o");
-	assert(cmd_run(&cmd, 0));
-
 	// Compile Application
 	cmd_append(&cmd, "clang++", "-std=c++17"); // Use c++17
 	cmd_append(&cmd, "-Wall", "-Wextra"); // Extra warnings
@@ -50,6 +43,7 @@ int main(int argc, char* argv[])
 #if defined(_WIN32)
 	cmd_append(&cmd, "-Wno-microsoft-include");
 	cmd_append(&cmd, "-Wno-missing-designated-field-initializers");
+	cmd_append(&cmd, "-Wno-deprecated-declarations"); // .. Who asked?
 	cmd_append(&cmd, "-lgdi32");
 #elif defined(__APPLE__)
 	cmd_append(&cmd, "-framework", "Cocoa", "-framework", "IOKit");
@@ -59,7 +53,6 @@ int main(int argc, char* argv[])
 	cmd_append(&cmd, "-lX11", "-lXrandr");
 #endif
 	cmd_append(&cmd, "-lvulkan"); // Link with Vulkan
-	cmd_append(&cmd, "libraries.c.o"); // Add compiled C libraries 
 	cmd_append(&cmd, "src/main.cpp"); // Add source code
 	cmd_append(&cmd, "-o", "app" EXT); // Rename output application
 	assert(cmd_run(&cmd, 0));

@@ -1,3 +1,4 @@
+#define RGFW_IMPLEMENTATION
 #include "engine.h"
 
 int main(int argc, char *argv[]) {
@@ -15,7 +16,7 @@ int main(int argc, char *argv[]) {
 	return engine.run();
 }
 
-// NOTE: This is a common compilation technique called a "Unity Build".
+// NOTE: This is a well-known compilation technique called a "Unity Build".
 //       Read https://en.wikipedia.org/wiki/Unity_build if you want to learn more.
 
 #include "graphics.cpp"
@@ -29,3 +30,7 @@ int main(int argc, char *argv[]) {
 #include "loaders/tokenizer.cpp"
 
 #include "renderers/text_renderer.cpp"
+
+// 😂 I WANT MY HEADER ONLY LIBRARIES!!
+#define print cJSON__print
+#include "3rdparty/cJSON.c"

@@ -117,7 +117,7 @@ struct FixedArenaAllocator {
 
 using ScratchArena = FixedArenaAllocator<u8>;
 
-global ScratchArena scratch_arena { 1_MiB };
+global ScratchArena scratch_arena { 64_KiB };
 
 constexpr bool is_power_of_two(u64 num) {
     return ((num) & (num - 1)) == 0; // Think about why this is true!
