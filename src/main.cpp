@@ -31,6 +31,5 @@ int main(int argc, char *argv[]) {
 
 #include "renderers/text_renderer.cpp"
 
-// 😂 I WANT MY HEADER ONLY LIBRARIES!!
 #define print cJSON__print
 #include "3rdparty/cJSON.c"
