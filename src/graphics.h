@@ -56,7 +56,7 @@ struct Graphics {
     Result submit_frame();
     Result allocate_required_memory();
     
-    u32 allocate_buffer(Partition type, u64 num_bytes);
+    uint32_t allocate_buffer(Partition type, u64 num_bytes);
 
     void write_vertex_buffer(u32 offset, void *data, u64 num_bytes);
     void write_index_buffer(u32 offset, void *data, u64 num_bytes);

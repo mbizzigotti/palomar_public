@@ -6,20 +6,17 @@ struct Tokenizer;
 struct MeshObjectLoader : public ObjectLoader {
     using Vertex = shader::PNVertex;
 
-    string              filename;
-    mat4                model;
     uint32_t            vertex_offset;
     uint32_t            index_offset;
     std::vector<Vertex> vertices;
     std::vector<u32>    indices;
 
 public:
-    MeshObjectLoader(cJSON *object);
 
     // --- Object Loader required functions ---
 
     const char* name() override { return "Mesh"; }
-    Result load(string scene_folder, Graphics &gfx, Object *object) override;
+    optional<Object> load(cJSON *object, Graphics &gfx) override;
     Result write_buffers(Graphics &gfx) override;
 
 private:

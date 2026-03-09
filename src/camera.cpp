@@ -94,6 +94,9 @@ bool Camera::handle_event(RGFW_event &event) {
 }
 
 void Camera::update(float dt) {
+    if (RGFW_isKeyPressed(RGFW_tab))
+        type = Type(((int)type + 1) % 2);
+
     if (type != Type::First_Person)
         return;
 

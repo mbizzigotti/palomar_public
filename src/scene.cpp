@@ -9,34 +9,39 @@ Result Scene::load(string filename, Graphics &gfx) {
         return ERROR("Failed to load scene file \"%.*s\"", FORMAT_STRING(filename));
 
     AutoFree<string> contents { scene_text.value() };
-    cJSON *json = cJSON_ParseWithLength(contents.data(), contents.size());
-    if (!json)
+    cJSON *j_scene = cJSON_ParseWithLength(contents.data(), contents.size());
+    if (!j_scene)
         return ERROR("Failed to parse scene file!");
 
-    Result result = Success;
-    string parent = parent_directory(filename);
-
+    // Load camera from scene file
     camera = Camera::get_default();
-    camera.load(cJSON_GetObjectItem(json, "Camera"));
+    camera.load(cJSON_GetObjectItem(j_scene, "Camera"));
 
+    // Temperarily set the current path to the scene's directory when loading
+    auto old_path = std::filesystem::current_path();
+    std::filesystem::current_path(path(filename).parent_path());
+
+    Result result = Success;
     std::vector<std::unique_ptr<ObjectLoader>> loaders;
-    if (cJSON *object_array = cJSON_GetObjectItem(json, "Objects")) {
-        // Initialize our list of objects
-        objects.resize(cJSON_GetArraySize(object_array));
-        memset(objects.data(), 0, sizeof(Object) * objects.size());
+    if (cJSON *j_objects = cJSON_GetObjectItem(j_scene, "Objects")) {
+        cJSON *j_object = 0;
+        cJSON_ArrayForEach(j_object, j_objects) {
+            std::unique_ptr<ObjectLoader> loader = create_object_loader(j_object);
+            
+            // Failed to get object loader, then skip
+            if (!loader)
+                continue;
 
-        // Load each object
-        int i = 0;
-        cJSON *object = 0;
-        cJSON_ArrayForEach(object, object_array) {
-            if (auto loader = create_object_loader(object)) {
-                if ((result = loader->load(parent, gfx, &objects[i]))) {
-                    ERROR("Failed to load object from %s object loader!", loader->name());
-                    goto error;
-                }
-                loaders.emplace_back(std::move(loader));
+            // Here we actually load the object!
+            optional<Object> object = loader->load(j_object, gfx);
+            if (!object.has_value()) {
+                return ERROR("Failed to load object from %s object loader!", loader->name());
             }
-            i += 1;
+            objects.emplace_back(std::move(object.value()));
+            
+            // We need to keep loaders around in order to write
+            // to graphics memory after it is allocated.
+            loaders.emplace_back(std::move(loader));
         }
     }
 
@@ -46,18 +51,15 @@ Result Scene::load(string filename, Graphics &gfx) {
         loader->write_buffers(gfx);
     }
 
-error:
-    cJSON_Delete(json);
+    std::filesystem::current_path(old_path);
+    cJSON_Delete(j_scene);
     return result;
 }
 
 void Scene::update_and_render(Graphics &gfx, float dt) {
-    if (RGFW_isKeyPressed(RGFW_tab))
-        camera.type = Camera::Type(((int)camera.type + 1) % 2);
-
     camera.update(dt);
     for (auto &obj: objects) {
-        obj.update_and_render(gfx.current_frame.command_buffer, gfx.pipeline_layout, dt);
+        obj.update_and_render(*this, gfx, dt);
     }
     skybox.render(gfx);
 	

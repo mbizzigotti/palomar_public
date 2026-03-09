@@ -15,6 +15,7 @@
 #include <iostream>      // Used for standard output
 #include <string_view>   // Used for `std::string_view`
 #include <unordered_map> // Used for Hash maps
+#include <filesystem>    // Used for filesystem access
 
 // Win32 is the worst C api ever
 // What is going on here?
@@ -42,6 +43,7 @@ using namespace glm;
 
 // `optional` is also a very useful type
 using std::optional;
+using std::filesystem::path; // .. also file paths
 
 // !!! IMPORTANT !!!
 // Using string_view as the default string type
@@ -174,32 +176,6 @@ void println(P&&...args) {
 
 // Print Function Specializations
 template<> void print<struct Token>(const struct Token &token);
-
-/**!
- * @brief Get file extension from filename.
- * @param filename Path to a file.
- * @return Sub-string containing the file extension, for example "file.cpp" -> ".cpp"
-*/
-string file_extension(string filename);
-
-/**!
- * @brief Get parent directory of file path.
- * @param filepath Path to a file.
- * @return Sub-string containing the parent directory, for example "path/to/file" -> "path/to"
- * 
- * @note Returns "." if no parent directory was found.
-*/
-string parent_directory(string filepath);
-
-/**!
-    @brief Joins a root path and a sub-path into a single normalized path string.
-    @param root   The base directory path.
-    @param path   The path to append to the root.
-    @param arena  Scratch arena used for allocating the resulting string.
-                  Defaults to `scratch_arena`.
-    @return A newly constructed string containing the joined path.
-*/
-string join_path(string root, string path, ScratchArena &arena = scratch_arena);
 
 /**!
  * @brief Loads the contents of an entire file into CPU memory.

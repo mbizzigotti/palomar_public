@@ -1,4 +1,8 @@
 {
+    "camera": {
+        "width": 800,
+        "height": 600
+    },
     "objects": [
         {
             "type": "Mesh",

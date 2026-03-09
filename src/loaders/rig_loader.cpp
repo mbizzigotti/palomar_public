@@ -1,17 +1,10 @@
 #include "rig_loader.h"
 
-
-RigObjectLoader::RigObjectLoader(cJSON *object) {
+optional<Object> RigObjectLoader::load(cJSON *json, Graphics &gfx) {
     // TODO
-    (void)object;
-}
-
-Result RigObjectLoader::load(string scene_folder, Graphics &gfx, Object *object) {
-    // TODO
-    (void)scene_folder;
+    (void)json;
     (void)gfx;
-    (void)object;
-    return Failed;
+    return {};
 }
 
 Result RigObjectLoader::write_buffers(Graphics &gfx) {

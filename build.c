@@ -43,6 +43,7 @@ int main(int argc, char* argv[])
 	cmd_append(&cmd, "clang++", "-std=c++17"); // Use c++17
 	cmd_append(&cmd, "-Wall", "-Wextra"); // Extra warnings
 	cmd_append(&cmd, "-Wno-deprecated-declarations"); // .. Who asked?
+	cmd_append(&cmd, "-Wno-missing-field-initializers"); // ??? WHY is this a warning!?
 	cmd_append(&cmd, "-g"); // Debug flags
 	//cmd_append(&cmd, "-O3"); // Optimization Flags
 	cmd_append(&cmd, "-L", PLATFORM_DIR); // Add library search path

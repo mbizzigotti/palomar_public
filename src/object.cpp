@@ -1,8 +1,14 @@
 #include "object.h"
+#include "scene.h"
 #include "graphics.h"
 
-void Object::update_and_render(VkCommandBuffer cmd, VkPipelineLayout layout, float dt) {
-    (void)dt; // not used
+void Object::update_and_render(Scene& scene, Graphics& gfx, float dt) {
+    // not used
+    (void)scene;
+    (void)dt;
+
+    VkCommandBuffer cmd = gfx.current_frame.command_buffer;
+    VkPipelineLayout layout = gfx.pipeline_layout;
 
     switch (type) {
     case Type::Mesh: {

@@ -4,27 +4,29 @@
 #include "../graphics.h"
 #include "../3rdparty/cJSON.h"
 
-MeshObjectLoader::MeshObjectLoader(cJSON *object) {
-    cJSON *file = cJSON_GetObjectItem(object, "File");
-    if (cJSON_IsString(file) && (file->valuestring != nullptr)) {
-        filename = string(file->valuestring);
+optional<Object> MeshObjectLoader::load(cJSON *object, Graphics &gfx) {
+    cJSON *j_filename = cJSON_GetObjectItem(object, "File");
+    if (!cJSON_IsString(j_filename) || (j_filename->valuestring == NULL)) {
+        ERROR("Mesh object must contain a file to load!");
+        return {};
     }
-    model = load_transform(cJSON_GetObjectItem(object, "Transform"));
-}
+    mat4 model = load_transform(cJSON_GetObjectItem(object, "Transform"));
 
-Result MeshObjectLoader::load(string parent, Graphics &gfx, Object *object) {
-    if (load_from_file(join_path(parent, filename)))
-        return Failed;
+    if (load_from_file(j_filename->valuestring))
+        return {};
 
     vertex_offset = gfx.allocate_buffer(Graphics::VERTEX_BUFFER, sizeof(Vertex) * vertices.size());
     index_offset = gfx.allocate_buffer(Graphics::INDEX_BUFFER, sizeof(u32) * indices.size());
 
-    object->type = Object::Type::Mesh;
-    object->mesh.vertex_offset = vertex_offset;
-    object->mesh.index_start = index_offset / sizeof(u32);
-    object->mesh.index_count = indices.size();
-    object->mesh.model = model;
-    return Success;
+    return Object {
+        .type = Object::Type::Mesh,
+        .mesh = {
+            .model = model,
+            .vertex_offset = vertex_offset,
+            .index_start = (uint32_t)(index_offset / sizeof(u32)),
+            .index_count = (uint32_t)(indices.size()),
+        }
+    };
 }
 
 Result MeshObjectLoader::write_buffers(Graphics &gfx) {
@@ -35,17 +37,17 @@ Result MeshObjectLoader::write_buffers(Graphics &gfx) {
 
 Result MeshObjectLoader::load_from_file(string filename) {
     optional<string> opt_contents = read_entire_file(filename);
-    if (!opt_contents)
+    if (!opt_contents.has_value())
         return ERROR("Failed to read file \"%.*s\"", FORMAT_STRING(filename));
 
     AutoFree<string> contents { opt_contents.value() };
-    string extension = file_extension(filename);
+    path extension = path(filename).extension();
     if (extension == ".obj") {
         return parse_from_obj(filename, contents);
     }
     else {
-        return ERROR("Unknown file type \"%.*s\", for \"%.*s\"",
-            FORMAT_STRING(extension), FORMAT_STRING(filename));
+        return ERROR("Unknown file type \"%s\", for \"%.*s\"",
+            extension.generic_string().c_str(), FORMAT_STRING(filename));
     }
 }
 

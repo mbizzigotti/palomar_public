@@ -663,7 +663,7 @@ Result Graphics::submit_frame() {
 	return Success;
 }
 
-u32 Graphics::allocate_buffer(Partition partition, u64 num_bytes) {
+uint32_t Graphics::allocate_buffer(Partition partition, u64 num_bytes) {
 	if (memory_available) {
 		ERROR("GPU memory already available, too late to allocate buffers!");
 		exit(1);

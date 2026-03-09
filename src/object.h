@@ -1,6 +1,9 @@
 #pragma once
 #include "core.h"
 
+struct Scene;
+struct Graphics;
+
 struct Mesh {
     mat4     model;
     uint32_t vertex_offset;
@@ -18,5 +21,5 @@ struct Object {
         Mesh mesh;
     };
 
-    void update_and_render(VkCommandBuffer cmd, VkPipelineLayout layout, float dt);
+    void update_and_render(Scene& scene, Graphics& gfx, float dt);
 };
