@@ -23,13 +23,13 @@ template<> void print<Token>(const Token &token) {
     }
 }
 
-Tokenizer::Tokenizer(string filename, string source, bool enable_newline)
+Tokenizer::Tokenizer(string_view filename, string_view source, bool enable_newline)
 :   filename(filename), source(source), enable_newline(enable_newline)
 {
     location.curr = generate_token();
 }
 
-Result Tokenizer::get_identifier(string &out) {
+Result Tokenizer::get_identifier(string_view &out) {
     if (location.curr.type != Token::Type::Identifier)
         return Failed;
     out = location.curr.identifier.value;
@@ -81,7 +81,7 @@ Result Tokenizer::next_float(double &out) {
     return Success;
 }
 
-Result Tokenizer::next_identifier(string &out) {
+Result Tokenizer::next_identifier(string_view &out) {
     if (next().type != Token::Type::Identifier)
         return Error("expected identifier here");
     out = location.curr.identifier.value;

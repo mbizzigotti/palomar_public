@@ -20,7 +20,7 @@ public:
     Result write_buffers(Graphics &gfx) override;
 
 private:
-    Result load_from_file(string filename);
+    Result load_from_file(string_view filename);
 
     struct Obj_LoaderContext {
         std::unordered_map<uvec3, u32> vertex_map;
@@ -30,6 +30,6 @@ private:
         u32 next_index = 0;
     };
 
-    Result parse_from_obj(string filename, string contents);
+    Result parse_from_obj(string_view filename, string_view contents);
     Result parse_line_obj(Tokenizer &tokenizer, Obj_LoaderContext &context);
 };

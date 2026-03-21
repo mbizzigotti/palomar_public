@@ -4,13 +4,8 @@
 
 struct Graphics;
 
-struct Skybox {
-    void render(Graphics &gfx) { (void)gfx; }
-};
-
 struct Scene {
     Camera camera;
-    Skybox skybox;
     std::vector<Object> objects;
 
     Result load(string filename, Graphics &gfx);

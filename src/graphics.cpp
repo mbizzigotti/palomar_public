@@ -145,8 +145,10 @@ Result Graphics::create_command_buffers() {
 	VkSemaphoreCreateInfo semaphore_info = {
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO
 	};
-	for (uint32_t i = 0; i < (uint32_t)std::size(present_ready_semaphores); ++i)
-		assert(vkCreateSemaphore(device, &semaphore_info, 0, &present_ready_semaphores[i]) == VK_SUCCESS);
+	for (uint32_t i = 0; i < MAX_SWAP_CHAIN_IMAGES; ++i)
+	{
+		assert(vkCreateSemaphore(device, &semaphore_info, 0, &render_finished_semaphores[i]) == VK_SUCCESS);
+	}
 
 	VkFenceCreateInfo fence_info = {
 		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
@@ -154,7 +156,7 @@ Result Graphics::create_command_buffers() {
 	};
 	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i)
 	{
-		assert(vkCreateSemaphore(device, &semaphore_info, 0, &image_ready_semaphores[i]) == VK_SUCCESS);
+		assert(vkCreateSemaphore(device, &semaphore_info, 0, &image_acquired_semaphores[i]) == VK_SUCCESS);
 		assert(vkCreateFence(device, &fence_info, 0, &fences[i]) == VK_SUCCESS);
 	}
 
@@ -561,7 +563,7 @@ Result Graphics::attach(RGFW_window *window) {
 Result Graphics::prepare_frame() {
 	current_frame.frame_index = (uint32_t)(frame_count % MAX_FRAMES_IN_FLIGHT);
 	VkFence fence = fences[current_frame.frame_index];
-	VkSemaphore image_ready_semaphore = image_ready_semaphores[current_frame.frame_index];
+	VkSemaphore image_acquired_semaphore = image_acquired_semaphores[current_frame.frame_index];
 
 	if (vkWaitForFences(device, 1, &fence, true, UINT64_MAX) != VK_SUCCESS)
 		return ERROR("vkWaitForFences failed!");
@@ -571,7 +573,7 @@ Result Graphics::prepare_frame() {
 	VkResult result = VK_ERROR_UNKNOWN;
 	while (result != VK_SUCCESS) {
 		result = vkAcquireNextImageKHR(device, swap_chain,
-			UINT64_MAX, image_ready_semaphore, 0, &current_frame.image_index);
+			UINT64_MAX, image_acquired_semaphore, 0, &current_frame.image_index);
 
 		if (result == VK_SUBOPTIMAL_KHR) {
 			break; // eh, thats fine.
@@ -627,6 +629,7 @@ Result Graphics::prepare_frame() {
 
 Result Graphics::submit_frame() {
 	memcpy(mapped_memory[SCENE_DATA], &scene_data, sizeof(scene_data));
+	flush_partition(SCENE_DATA, 0, VK_WHOLE_SIZE);
 
 	vkCmdEndRenderPass(current_frame.command_buffer);
 
@@ -638,12 +641,12 @@ Result Graphics::submit_frame() {
 	VkSubmitInfo submit_info = {
 		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		.waitSemaphoreCount = 1,
-		.pWaitSemaphores = &image_ready_semaphores[current_frame.frame_index],
+		.pWaitSemaphores = &image_acquired_semaphores[current_frame.frame_index],
 		.pWaitDstStageMask = &wait_mask,
 		.commandBufferCount = 1,
 		.pCommandBuffers = &current_frame.command_buffer,
 		.signalSemaphoreCount = 1,
-		.pSignalSemaphores = &present_ready_semaphores[current_frame.image_index],
+		.pSignalSemaphores = &render_finished_semaphores[current_frame.image_index],
 	};
 	if (vkQueueSubmit(queue, 1, &submit_info, fence) != VK_SUCCESS)
 		return Failed;
@@ -651,7 +654,7 @@ Result Graphics::submit_frame() {
 	VkPresentInfoKHR present_info = {
 		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
 		.waitSemaphoreCount = 1,
-		.pWaitSemaphores = &present_ready_semaphores[current_frame.image_index],
+		.pWaitSemaphores = &render_finished_semaphores[current_frame.image_index],
 		.swapchainCount = 1,
 		.pSwapchains = &swap_chain,
 		.pImageIndices = &current_frame.image_index,
@@ -691,7 +694,7 @@ Result Graphics::allocate_required_memory() {
 		VkMemoryRequirements memory_requirements = {};
 		vkGetBufferMemoryRequirements(device, buffer, &memory_requirements);
 
-		//                     (Graphics Memory)                     (Able to be memory-mapped)
+		//                     (Memory lives on GPU)                 (Able to be memory-mapped)
 		VkFlags memory_flags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
 
 		VkMemoryAllocateInfo allocate_info = {

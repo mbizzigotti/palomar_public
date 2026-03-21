@@ -27,11 +27,15 @@ clang build.c -o build.exe
 > cl /std:c++20 lib/windows/vulkan.lib src/main.cpp /Fe:palomar.exe
 > ```
 > `build.c` is simplified to only compile with `clang++`, but it can be modified to use MSVC instead!
+> **Don't forget to compile the shader!!**
 
 Now that the build program is compiled, there is no need to recompile it, ever[^2]. To then build Palomar, simply run the build program
 ```sh
 ./build
 ```
+
+> [!NOTE]
+> If you have an anti-virus software installed, the build program will not work; you will need to whitelist it or disable your anti-virus!
 
 # Running
 Try running one of the sample scenes provided!

@@ -122,7 +122,7 @@ void Camera::update(float dt) {
                     * eulerAngleX(radians(-first_person.incline))
                     * vec4(0.0f, 0.0f, 1.0f, 0.0f);
 
-    direction.y = 0.0f; // ignore Y movement
+    direction.y = 0.0f; // ignore Y movement, this is a personal preference
     direction = normalize(direction);
 
     vec3 tangent = cross(vec3(0.0f, 1.0f, 0.0f), direction);
@@ -141,7 +141,7 @@ void Camera::load(cJSON *object) {
 
     cJSON *j_type = cJSON_GetObjectItem(object, "Type");
     if (cJSON_IsString(j_type) && (j_type->valuestring != nullptr)) {
-        string type_string = string(j_type->valuestring);
+        string_view type_string = string_view(j_type->valuestring);
         if (type_string == "Viewer")
             type = Type::Viewer;
         else if (type_string == "First_Person")
@@ -171,10 +171,10 @@ void Camera::load(cJSON *object) {
             out = (float)(item->valuedouble);
         }
     };
-    auto parse_u32 = [](cJSON *object, const char* name, u32& out) {
+    auto parse_u32 = [](cJSON *object, const char* name, uint32_t& out) {
         cJSON *item = cJSON_GetObjectItem(object, name);
         if (cJSON_IsNumber(item)) {
-            out = (float)(item->valueint);
+            out = (uint32_t)(item->valueint);
         }
     };
 
@@ -186,11 +186,13 @@ void Camera::load(cJSON *object) {
 }
 
 mat4 Camera::get_transform(vec3 *view_position) {
-    // NOTE: Projection matrix stays the same for all camera types
+    // Projection matrix stays the same for all camera types
     float aspect = (float)(width) / (float)(height);
-    // NOTE: Also invert Y axis is for Vulkan weirdness
-    mat4 projection = scale(vec3(1,-1,1)) * perspective(radians(fov), aspect, near, far);
+    // Also invert Y axis is for Vulkan weirdness
+    mat4 projection = scale(vec3(1,-1,1))
+	                * perspective(radians(fov), aspect, near, far);
 
+	mat4 view;
     switch (type) {
         case Type::Viewer:
         {
@@ -201,9 +203,8 @@ mat4 Camera::get_transform(vec3 *view_position) {
                   * world;
             if (view_position)
                 *view_position = vec3(world[3]);
-            mat4 view = inverse(world);
-            return projection * view;
-        }
+            view = inverse(world);
+        } break;
         case Type::First_Person:
         {
             if (view_position)
@@ -212,8 +213,8 @@ mat4 Camera::get_transform(vec3 *view_position) {
                            * eulerAngleX(radians(-first_person.incline))
                            * vec4(0.0f, 0.0f, 1.0f, 0.0f);
             vec3 center = first_person.position + direction;
-            mat4 view = lookAt(first_person.position, center, vec3(0.0f, 1.0f, 0.0f));
-            return projection * view;
-        }
+            view = lookAt(first_person.position, center, vec3(0.0f, 1.0f, 0.0f));
+        } break;
     }
+	return projection * view;
 }

@@ -4,12 +4,11 @@
 #include "loaders/object_loader.h"
 
 Result Scene::load(string filename, Graphics &gfx) {
-    optional<string> scene_text = read_entire_file(filename);
-    if (!scene_text)
+    optional<string> contents = read_entire_file(filename);
+    if (!contents.has_value())
         return ERROR("Failed to load scene file \"%.*s\"", FORMAT_STRING(filename));
 
-    AutoFree<string> contents { scene_text.value() };
-    cJSON *j_scene = cJSON_ParseWithLength(contents.data(), contents.size());
+    cJSON *j_scene = cJSON_ParseWithLength(contents->data(), contents->size());
     if (!j_scene)
         return ERROR("Failed to parse scene file!");
 
@@ -61,7 +60,6 @@ void Scene::update_and_render(Graphics &gfx, float dt) {
     for (auto &obj: objects) {
         obj.update_and_render(*this, gfx, dt);
     }
-    skybox.render(gfx);
 	
     gfx.scene_data.view_proj = camera.get_transform(&gfx.scene_data.view_pos);
     gfx.scene_data.screen_size.x = gfx.image_extent.width;

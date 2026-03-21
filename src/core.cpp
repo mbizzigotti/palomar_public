@@ -1,10 +1,10 @@
 #include "core.h"
 #include <fstream>
 
-Result Error(string file, int line, const char *format, ...) {
+Result Error(string_view file, int line, const char *format, ...) {
     static Result last_result = Success;
 
-    // Use this to only report the first error that occurs
+    // Only report the first error that occurs
     if (last_result == Failed)
         return Failed;
 
@@ -13,11 +13,11 @@ Result Error(string file, int line, const char *format, ...) {
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
-    printf("\n See %.*s, line %i\n", FORMAT_STRING(file), line);
+    printf("\n See %.*s:%i\n", FORMAT_STRING(file), line);
     return (last_result = Failed);
 }
 
-optional<string> read_entire_file(string filename) {
+optional<string> read_entire_file(string_view filename) {
 	std::ifstream f(std::string(filename), std::ios::binary);
     if (!f.is_open()) return {};
 

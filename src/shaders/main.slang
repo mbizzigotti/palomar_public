@@ -10,8 +10,7 @@ struct VSOut {
 [[vk::push_constant]] ConstantBuffer<PerDraw> draw;
 [[vk::binding(0)]] ConstantBuffer<Scene> scene;
 [[vk::binding(1)]] ByteAddressBuffer vertex_buffer;
-// [[vk::binding(2)]] StructuredBuffer<PointLight> lights;
-// [[vk::binding(3)]] StructuredBuffer<float4x4> joint_transforms;
+// [[vk::binding(2)]] StructuredBuffer<float4x4> joint_transforms;
 
 [shader("vertex")]
 VSOut main(uint vertexIndex : SV_VertexID)
@@ -58,19 +57,25 @@ float3 eval_point_light(PointLight light, float3 position, float3 normal)
     return ambient + diffuse + specular;
 }
 
+static const PointLight lights[] = {
+    {
+        { 0, 6, 10 }, /* Position */
+        { 1, 1, 1 },  /* Color */
+        0.1, 0.5,     /* Ambient & Specular strength */
+	},
+};
+
 [shader("fragment")]
 float4 main(VSOut input) : SV_Target
 {
     switch (draw.material_id) {
     case Material.Phong: {
-        PointLight light = {
-            { 0, 6, 10 },
-            { 1, 1, 1 },
-            0.1, 0.5,
-        };
-        float3 normal = normalize(input.param2.xyz);
         float3 position = input.param1.xyz;
-        float3 color = eval_point_light(light, position, normal);
+        float3 normal = normalize(input.param2.xyz);
+        float3 color = 0;
+        $for (i in Range(0, sizeof(lights)/sizeof(PointLight))) {
+			color += eval_point_light(lights[i], position, normal);
+		}
         return float4(color, 1);
     }
 

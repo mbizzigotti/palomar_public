@@ -9,7 +9,7 @@ struct TokenNumber {
 
 // Regular Expression: [a-zA-Z_]+
 struct TokenIdentifier {
-    string value;
+    string_view value;
 };
 
 // Everything that is not a number or identifier, will be a symbol
@@ -25,7 +25,7 @@ struct Token {
     
     Type type;
     uint32_t line;
-    string expression;
+    string_view expression;
     union {
         TokenNumber     number;
         TokenIdentifier identifier;
@@ -55,12 +55,12 @@ struct Tokenizer {
         Token     next        {};
     };
 
-    string   filename;
-    string   source;
-    Location location;
-    bool     enable_newline;
+    string_view filename;
+    string_view source;
+    Location    location;
+    bool        enable_newline;
 
-    Tokenizer(string filename, string source, bool enable_newline = false);
+    Tokenizer(string_view filename, string_view source, bool enable_newline = false);
 
     bool has_tokens() const { return bool(location.curr); }
 
@@ -71,13 +71,13 @@ struct Tokenizer {
     Result get_symbol(u32 &out);
     Result get_int(u64 &out);
     Result get_float(double &out);
-    Result get_identifier(string &out);
+    Result get_identifier(string_view &out);
 
     Token  next();
     Result next_symbol(u32 &out);
     Result next_int(u64 &out);
     Result next_float(double &out);
-    Result next_identifier(string &out);
+    Result next_identifier(string_view &out);
 
 private:
     Token generate_token();

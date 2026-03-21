@@ -49,7 +49,6 @@ Result Engine::setup(Options &options) {
 }
 
 Result Engine::run() {
-	timer.tick();
 	while (!RGFW_window_shouldClose(window) && running)
 	{
 		RGFW_event event;
@@ -62,11 +61,7 @@ Result Engine::run() {
 				continue;
 		}
 
-		float dt = timer.tick();
-
-		// TODO(mitch): This is awkward, I should just double buffer
-		//              the text rendering so this isn't needed...
-		vkQueueWaitIdle(graphics.queue);
+		float dt = timer.seconds_elapsed_and_reset();
 
 		if (graphics.prepare_frame())
 			return ERROR("Failed to prepare frame!");

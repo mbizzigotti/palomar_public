@@ -13,7 +13,7 @@ std::unique_ptr<ObjectLoader> create_object_loader(cJSON *object) {
         return nullptr;
     }
 
-    string type_string = string(type->valuestring);
+    string_view type_string = string_view(type->valuestring);
     if (type_string == "Mesh") {
         return std::make_unique<MeshObjectLoader>();
     }

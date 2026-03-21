@@ -5,11 +5,14 @@
 #include "../3rdparty/cJSON.h"
 
 optional<Object> MeshObjectLoader::load(cJSON *object, Graphics &gfx) {
+	// Get filename from json object
     cJSON *j_filename = cJSON_GetObjectItem(object, "File");
     if (!cJSON_IsString(j_filename) || (j_filename->valuestring == NULL)) {
-        ERROR("Mesh object must contain a file to load!");
+		ERROR("Mesh object must contain a file to load!");
         return {};
     }
+
+	// Get model matrix from json object
     mat4 model = load_transform(cJSON_GetObjectItem(object, "Transform"));
 
     if (load_from_file(j_filename->valuestring))
@@ -35,20 +38,42 @@ Result MeshObjectLoader::write_buffers(Graphics &gfx) {
     return Success;
 }
 
-Result MeshObjectLoader::load_from_file(string filename) {
-    optional<string> opt_contents = read_entire_file(filename);
-    if (!opt_contents.has_value())
+Result MeshObjectLoader::load_from_file(string_view filename) {
+    optional<std::string> contents = read_entire_file(filename);
+    if (!contents.has_value())
         return ERROR("Failed to read file \"%.*s\"", FORMAT_STRING(filename));
 
-    AutoFree<string> contents { opt_contents.value() };
     path extension = path(filename).extension();
     if (extension == ".obj") {
-        return parse_from_obj(filename, contents);
+        return parse_from_obj(filename, contents.value());
     }
     else {
         return ERROR("Unknown file type \"%s\", for \"%.*s\"",
             extension.generic_string().c_str(), FORMAT_STRING(filename));
     }
+}
+
+Result MeshObjectLoader::parse_from_obj(string_view filename, string_view contents) {
+    Tokenizer tokenizer { filename, contents, true };
+    Obj_LoaderContext context;
+    while (tokenizer.has_tokens()) {
+        if (parse_line_obj(tokenizer, context))
+            return Failed;
+        tokenizer.next();
+    }
+    vertices.resize(context.vertex_map.size());
+    for (auto& [face, index]: context.vertex_map) {
+        // Obj files are 1-index based, so we need to subtract 1
+        u32 v = face.x - 1, vt = face.y - 1, vn = face.z - 1;
+
+        vertices[index].position = context.positions[v];
+        vertices[index].normal = context.normals[vn];
+
+        // Not Implemented
+        (void)vt;
+        (void)context.texcoords;
+    }
+    return Success;
 }
 
 Result parse_face_index_obj(Tokenizer &tokenizer, uvec3 &out) {
@@ -109,7 +134,7 @@ Result MeshObjectLoader::parse_line_obj(Tokenizer &tokenizer, Obj_LoaderContext 
     if (tok.type != Token::Type::Identifier)
         return ERROR("should be id here");
 
-    string id = tok.identifier.value;
+    string_view id = tok.identifier.value;
 
     switch (id[0]) {
         // Vertex Attributes
@@ -163,28 +188,5 @@ Result MeshObjectLoader::parse_line_obj(Tokenizer &tokenizer, Obj_LoaderContext 
         }
     }
 
-    return Success;
-}
-
-Result MeshObjectLoader::parse_from_obj(string filename, string contents) {
-    Tokenizer tokenizer { filename, contents, true };
-    Obj_LoaderContext context;
-    while (tokenizer.has_tokens()) {
-        if (parse_line_obj(tokenizer, context))
-            return Failed;
-        tokenizer.next();
-    }
-    vertices.resize(context.vertex_map.size());
-    for (auto& [face, index]: context.vertex_map) {
-        // Obj files are 1-index based, so we need to subtract 1
-        u32 v = face.x - 1, vt = face.y - 1, vn = face.z - 1;
-
-        vertices[index].position = context.positions[v];
-        vertices[index].normal = context.normals[vn];
-
-        // Not Implemented
-        (void)vt;
-        (void)context.texcoords;
-    }
     return Success;
 }
