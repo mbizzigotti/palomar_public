@@ -73,9 +73,12 @@ Result Graphics::create_instance(bool enable_validation) {
 		.ppEnabledExtensionNames =  extension_names,
 	};
 
-	if (vkCreateInstance(&instance_info, 0, &instance) != VK_SUCCESS)
+	VkResult result = vkCreateInstance(&instance_info, 0, &instance);
+	if (result == VK_ERROR_LAYER_NOT_PRESENT) {
+		return ERROR("Layer not present!");
+	} else if (result != VK_SUCCESS) {
 		return ERROR("Failed to create Vulkan instance!");
-	
+	}
 	return Success;
 }
 
@@ -95,9 +98,7 @@ Result Graphics::create_device(bool enable_validation) {
 		"VK_KHR_shader_draw_parameters",
 	};
 
-	const char* layer_names[] = {
-		"VK_LAYER_KHRONOS_validation",
-	};
+	const char* layer_names[] = { "VK_LAYER_KHRONOS_validation" };
 
 	float priority = 1.0f;
 	VkDeviceQueueCreateInfo queue_info = {

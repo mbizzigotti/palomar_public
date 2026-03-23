@@ -3,7 +3,7 @@
 #include "scene.h"
 
 struct Options {
-    bool        enable_graphics_validation { true };
+    bool        enable_graphics_validation { false };
     const char* scene_filename             { 0 };
 
     Options(int argc, char *argv[]);

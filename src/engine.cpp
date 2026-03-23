@@ -2,12 +2,20 @@
 #include "renderers/text_renderer.h"
 
 Options::Options(int argc, char *argv[]) {
+	using namespace std::string_view_literals;
 	for (int i = 1; i < argc; ++i) {
 		char *arg = argv[i];
 
 		// Parse option
 		if (arg[0] == '-') {
-			printf("Warning: Option not supported \"%s\"\n", arg);
+			arg += 1;
+			if ("v"sv == arg) {
+				printf("Info: Validation layer enabled!\n");
+				enable_graphics_validation = true;
+			}
+			else {
+				printf("Warning: Option not supported \"%s\"\n", arg);
+			}
 			continue;
 		}
 
