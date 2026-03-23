@@ -33,6 +33,7 @@ void TextRenderer::add_text(Color color, const char *format, ...) {
 }
 
 void TextRenderer::write_buffers(Graphics &gfx) {
+	// Index buffer is precomputed for Quad primitives
 	std::vector<u32> indices;
 	for (uint32_t i = 0; i < MAX_QUAD_COUNT; ++i) {
 		indices.emplace_back(i*4 + 0);
@@ -43,6 +44,7 @@ void TextRenderer::write_buffers(Graphics &gfx) {
 		indices.emplace_back(i*4 + 0);
 	}
 	gfx.write_index_buffer(index_offset, indices.data(), indices.size() * sizeof(u32));
+	// Vertex buffer is dynamic
 }
 
 void TextRenderer::render(Graphics &gfx) {

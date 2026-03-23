@@ -2,9 +2,18 @@
 #define FONT_SCALE 2.0
 
 struct VSOut {
-    float4 position : SV_Position;
+    float4 screen_position : SV_Position;
     float4 param1;
     float4 param2;
+
+    property float3 normal {
+        get { return param1.xyz; }
+        set { param1.xyz = newValue; }
+    }
+    property float3 world_position {
+        get { return param2.xyz; }
+        set { param2.xyz = newValue; }
+    }
 };
 
 [[vk::push_constant]] ConstantBuffer<PerDraw> draw;
@@ -22,16 +31,16 @@ VSOut main(uint vertexIndex : SV_VertexID)
         const uint index = vertexIndex * sizeof(PNVertex) + draw.vertex_offset;
         PNVertex vertex = vertex_buffer.LoadByteOffset<PNVertex>(index);
         float4 world_position = mul(draw.model, float4(vertex.position, 1));
-        output.position = mul(scene.view_proj, world_position);
-        output.param1 = world_position;
-        output.param2 = float4(vertex.normal, 0);
+        output.screen_position = mul(scene.view_proj, world_position);
+        output.world_position = world_position.xyz;
+        output.normal = mul(float3x3(draw.model), vertex.normal);
     } break;
 
     case Shader.Text: {
         const uint index = vertexIndex * sizeof(TextVertex) + draw.vertex_offset;
         TextVertex vertex = vertex_buffer.Load<TextVertex>(index);
         float2 scale = FONT_SCALE / scene.screen_size;
-        output.position = float4(vertex.position.xy * scale - 1, 0, 1);
+        output.screen_position = float4(vertex.position.xy * scale - 1, 0, 1);
         output.param1 = unpackUnorm4x8ToFloat(vertex.color);
     } break;
     }
@@ -70,12 +79,14 @@ float4 main(VSOut input) : SV_Target
 {
     switch (draw.material_id) {
     case Material.Phong: {
-        float3 position = input.param1.xyz;
-        float3 normal = normalize(input.param2.xyz);
+        float3 normal = normalize(input.normal);
         float3 color = 0;
-        $for (i in Range(0, sizeof(lights)/sizeof(PointLight))) {
-			color += eval_point_light(lights[i], position, normal);
+
+        [unroll]
+        for (int i = 0; i < lights.getCount(); ++i) {
+            color += eval_point_light(lights[i], input.world_position, normal);
 		}
+		
         return float4(color, 1);
     }
 
