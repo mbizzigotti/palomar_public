@@ -11,7 +11,7 @@ Loading can be viewed at [scene.cpp](../src/scene.cpp)
 ```cpp
 Result Scene::load(string filename, Graphics &gfx) {
     // ... read and parse scene file ...
-◊
+
     // Load each object
     for(auto object: scene_objects) {
         auto loader = create_object_loader(j_object);
