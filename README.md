@@ -6,6 +6,7 @@ Palomar[^1] is a custom GPU renderer provided for the course CSE 169 at UCSD tha
 - [Building](#building)
 - [Running](./docs/Running.md)
 - [Walkthrough](./docs/Walkthrough.md)
+- [Debugging](./docs/Debugging.md)
 
 # Building
 
@@ -22,11 +23,8 @@ cmake -S . -B build
 
 And, to build the project, we can do
 ```sh
-cmake --build build -j
+cmake --build build
 ```
-
-> [!NOTE]
-> Always prefer to use `-j` for faster compile times
 
 Try running one of the sample scenes provided! On a Unix-like system, you can do
 ```sh
