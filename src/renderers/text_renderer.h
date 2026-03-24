@@ -10,7 +10,7 @@ struct TextRenderer {
 	u32 index_offset;
 	u32 index_start;
 	u32 quad_count;
-    u32 line_offset;
+    float line_offset;
 
 	std::vector<Vertex> vertices;
 
@@ -21,4 +21,4 @@ struct TextRenderer {
 	void render(Graphics &gfx);
 };
 
-global TextRenderer text;
+global TextRenderer g_text;

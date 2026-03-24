@@ -2,12 +2,20 @@
 #include "renderers/text_renderer.h"
 
 Options::Options(int argc, char *argv[]) {
+	using namespace std::string_view_literals;
 	for (int i = 1; i < argc; ++i) {
 		char *arg = argv[i];
 
 		// Parse option
 		if (arg[0] == '-') {
-			printf("Warning: Option not supported \"%s\"\n", arg);
+			arg += 1;
+			if ("v"sv == arg) {
+				printf("Info: Validation layer enabled!\n");
+				enable_graphics_validation = true;
+			}
+			else {
+				printf("Warning: Option not supported \"%s\"\n", arg);
+			}
 			continue;
 		}
 
@@ -20,16 +28,24 @@ Options::Options(int argc, char *argv[]) {
 	}
 }
 
+void Options::print_help_message() {
+	printf("Usage: palomar [FLAGS] <scene>\n"
+	"\n"
+	"FLAGS:\n"
+	"    -v    Enable Vulkan validation layer\n"
+	"\n");
+}
+
 Result Engine::setup(Options &options) {
 	if (graphics.setup(options.enable_graphics_validation))
 		return ERROR("Failed to setup graphics context!");
 
-	text.setup(graphics);
+	g_text.setup(graphics);
 
 	if (scene.load(options.scene_filename, graphics))
 		return ERROR("Failed to load scene!");
 
-	text.write_buffers(graphics);
+	g_text.write_buffers(graphics);
 
 	if (scene.camera.width == 0 || scene.camera.height == 0) {
 		printf("Warning: Camera width & height should not be zero, reseting..\n");
@@ -66,10 +82,10 @@ Result Engine::run() {
 		if (graphics.prepare_frame())
 			return ERROR("Failed to prepare frame!");
 
-		text.add_text(WHITE, "%.1f FPS", 1.0f / dt);
+		g_text.add_text(WHITE, "%.1f FPS", 1.0f / dt);
 
 		scene.update_and_render(graphics, dt);
-		text.render(graphics);
+		g_text.render(graphics);
 
 		if (graphics.submit_frame())
 			return ERROR("Failed to submit frame!");

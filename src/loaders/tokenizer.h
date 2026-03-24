@@ -60,19 +60,26 @@ struct Tokenizer {
     Location    location;
     bool        enable_newline;
 
+    // Initialize tokenizer with file and contents
     Tokenizer(string_view filename, string_view source, bool enable_newline = false);
 
+    // Returns current_token != END
     bool has_tokens() const { return bool(location.curr); }
 
+    // Print out an error message relative to the loaded file.
     Result Error(const char* message);
 
-    Token  get();
+    // Look ahead to next token.
     Token  peek();
+
+    // Get current token.
+    Token  get();
     Result get_symbol(u32 &out);
     Result get_int(u64 &out);
     Result get_float(double &out);
     Result get_identifier(string_view &out);
 
+    // Get token after the current token.
     Token  next();
     Result next_symbol(u32 &out);
     Result next_int(u64 &out);

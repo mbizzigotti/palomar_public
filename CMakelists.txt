@@ -1,0 +1,51 @@
+cmake_minimum_required(VERSION 3.10)
+project(palomar)
+
+add_subdirectory(src/shaders)
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 20)
+
+# Source Files
+file(GLOB_RECURSE SOURCE_FILES
+	src/*.cpp
+	src/3rdparty/cJSON.c
+	src/shaders
+)
+
+if(APPLE)
+	# We need to explicitly tell Apple which dynamic libraries we want at runtime.
+	set(CMAKE_MACOSX_RPATH 1)
+	set(CMAKE_BUILD_RPATH "${CMAKE_SOURCE_DIR}/lib/macos")
+endif()
+
+add_executable(palomar ${SOURCE_FILES})
+
+# Enable extra warnings
+if(MSVC)
+	target_compile_options(palomar PRIVATE /W4)
+else()
+	target_compile_options(palomar PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# Library directory
+if(WIN32)
+	target_link_directories(palomar PUBLIC lib/windows)
+elseif(APPLE)
+	target_link_directories(palomar PUBLIC lib/macos)
+endif()
+
+# Which libraries to link to
+target_link_libraries(palomar PUBLIC
+	vulkan
+    "$<$<PLATFORM_ID:Darwin>:$<LINK_LIBRARY:FRAMEWORK,Cocoa>>"
+    "$<$<PLATFORM_ID:Darwin>:$<LINK_LIBRARY:FRAMEWORK,IOKit>>"
+)
+
+# Allow multi-core compile with MSVC
+# Disable by passing "-DNOMP"
+if(NOT NOMP)
+	if(MSVC)
+		target_compile_options(palomar PRIVATE "/MP")
+	endif()
+endif()

@@ -10,6 +10,14 @@
         },
         {
             "type": "Mesh",
+            "file": "assets/bear-sp22.obj",
+            "transform": [
+                {"scale": 0.1},
+                {"translate": [0, 1, 0]}
+            ]
+        },
+        {
+            "type": "Mesh",
             "file": "assets/monkey.obj",
             "transform": [
                 {"translate": [3, 0, 0]}

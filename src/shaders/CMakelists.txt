@@ -1,0 +1,27 @@
+# Writing CMake and my life got infinitly worse
+
+set(SHADER_SOURCE ${CMAKE_SOURCE_DIR}/src/shaders/main.slang)
+set(SHADER_OUTPUT ${CMAKE_SOURCE_DIR}/src/shaders/main.slang.h)
+
+if(WIN32)
+    set(SLANGC ${CMAKE_SOURCE_DIR}/lib/windows/slangc.exe)
+elseif(APPLE)
+    set(SLANGC ${CMAKE_SOURCE_DIR}/lib/macos/slangc)
+elseif(LINUX)
+    set(SLANGC ${CMAKE_SOURCE_DIR}/lib/linux/slangc)
+endif()
+
+add_custom_command(
+    OUTPUT ${SHADER_OUTPUT}
+    COMMAND ${SLANGC} -target spirv -source-embed-style u32 ${SHADER_SOURCE} -o ${SHADER_OUTPUT}
+    DEPENDS ${SOURCE_FILES} shared.inl
+    COMMENT "Compiling shader main.slang"
+    VERBATIM
+)
+
+add_custom_target(compile_shaders ALL
+    DEPENDS ${SHADER_OUTPUT}
+)
+
+# What I meant was that I love cmake,
+# who doesn't love completely unnessesary bloat software?

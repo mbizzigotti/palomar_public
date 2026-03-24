@@ -8,20 +8,28 @@
 			"name": "DEBUG (Windows)",
 			"type": "cppvsdbg",
 			"request": "launch",
-            "program": "${workspaceFolder}/app.exe",
+            "program": "${workspaceFolder}/build/Debug/palomar.exe",
 			"cwd": "${workspaceFolder}",
 			"args": ["scenes/cube.json"],
 			"stopAtEntry": false,
-			"console": "externalTerminal"
+			"console": "externalTerminal",
+            "environment": [
+                {"name": "VK_LAYER_PATH", "value": "${workspaceFolder}/lib/windows"}
+            ]
 		},
         {
             "name": "DEBUG (MacOS)",
             "request": "launch",
             "type": "cppdbg",
-            "program": "${workspaceFolder}/app",
+            "program": "${workspaceFolder}/build/palomar",
             "cwd": "${workspaceFolder}",
             "args": ["scenes/cube.json"],
-            "MIMode": "lldb"
+            "targetArchitecture": "arm64",
+            "MIMode": "lldb",
+            "environment": [
+                {"name": "VK_LAYER_PATH", "value": "${workspaceFolder}/lib/macos"},
+                {"name": "DYLD_LIBRARY_PATH", "value": "${workspaceFolder}/lib/macos"}
+            ]
         }
     ]
 }

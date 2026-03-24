@@ -1,10 +1,9 @@
 #include "object_loader.h"
-#include "../3rdparty/cJSON.h"
+#include "transform_loader.h"
+#include "mesh_loader.h"
+#include "rig_loader.h"
 
-// All object loaders can be included here ...
-#include "transform_loader.cpp"
-#include "mesh_loader.cpp"
-#include "rig_loader.cpp"
+#include "../3rdparty/cJSON.h"
 
 std::unique_ptr<ObjectLoader> create_object_loader(cJSON *object) {
     cJSON *type = cJSON_GetObjectItem(object, "Type");

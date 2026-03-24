@@ -1,10 +1,6 @@
 *.o
-
-build
-build.*
-!build.c
-app
-app.*
+build/
 *.dylib
 !lib/
 *.spv
+*.bin

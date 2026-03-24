@@ -17,9 +17,7 @@ struct Object {
     };
 
     Type type;
-    union {
-        Mesh mesh;
-    };
+    Mesh mesh;
 
     void update_and_render(Scene& scene, Graphics& gfx, float dt);
 };

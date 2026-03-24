@@ -1,5 +1,6 @@
 #pragma once
 #include "object_loader.h"
+#include "../graphics.h"
 
 struct Tokenizer;
 

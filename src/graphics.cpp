@@ -1,5 +1,9 @@
 #include "graphics.h"
 
+namespace shader {
+#include "shaders/main.slang.h"
+}
+
 // References:
 //   - https://vulkan-tutorial.com/
 //   - https://docs.vulkan.org/
@@ -73,9 +77,17 @@ Result Graphics::create_instance(bool enable_validation) {
 		.ppEnabledExtensionNames =  extension_names,
 	};
 
-	if (vkCreateInstance(&instance_info, 0, &instance) != VK_SUCCESS)
-		return ERROR("Failed to create Vulkan instance!");
-	
+#if defined(__APPLE__)
+	// This is a hack so that Vulkan knows what driver to load (MoltenVK)
+	setenv("VK_ICD_FILENAMES", "./lib/macos/MoltenVK_icd.json", 1);
+#endif
+
+	VkResult result = vkCreateInstance(&instance_info, 0, &instance);
+	if (result == VK_ERROR_LAYER_NOT_PRESENT) {
+		return ERROR("Layer not present!");
+	} else if (result != VK_SUCCESS) {
+		return ERROR("Failed to create Vulkan instance! (%i)", (int)(result));
+	}
 	return Success;
 }
 
@@ -95,9 +107,7 @@ Result Graphics::create_device(bool enable_validation) {
 		"VK_KHR_shader_draw_parameters",
 	};
 
-	const char* layer_names[] = {
-		"VK_LAYER_KHRONOS_validation",
-	};
+	const char* layer_names[] = { "VK_LAYER_KHRONOS_validation" };
 
 	float priority = 1.0f;
 	VkDeviceQueueCreateInfo queue_info = {
@@ -305,15 +315,11 @@ Result Graphics::create_layouts() {
 }
 
 Result Graphics::create_render_pipeline() {
-	std::optional<string> shader_contents = read_entire_file("shader.spv");
-	if (!shader_contents)
-		return ERROR("Failed to load shader file \"%s\"", "shader.spv");
-
 	VkShaderModule shader = 0;
 	VkShaderModuleCreateInfo shader_info = {
 		.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-		.codeSize = shader_contents->size(),
-		.pCode = (uint32_t*)shader_contents->data(),
+		.codeSize = shader::data_sizeInBytes,
+		.pCode = (uint32_t*)(shader::data),
 	};
 	if (vkCreateShaderModule(device, &shader_info, 0, &shader) != VK_SUCCESS)
 		return Failed;
@@ -432,8 +438,8 @@ Result Graphics::setup(bool enable_validation) {
 	return Success;
 }
 
-Result Graphics::attach(RGFW_window *window) {
-	this->window = window; // We use this now!
+Result Graphics::attach(RGFW_window *_window) {
+	window = _window; // We use this now!
 
 	if (RGFW_window_createSurface_Vulkan(window, instance, &surface) != VK_SUCCESS)
 		return ERROR("Failed to create Vulkan surface!");
@@ -671,7 +677,7 @@ uint32_t Graphics::allocate_buffer(Partition partition, u64 num_bytes) {
 		exit(1);
 	}
 	uint32_t offset = partition_sizes[partition];
-	partition_sizes[partition] += num_bytes;
+	partition_sizes[partition] += (u32)(num_bytes);
 	return offset;
 }
 

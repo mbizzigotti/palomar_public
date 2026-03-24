@@ -44,7 +44,7 @@ bool Camera::handle_event(RGFW_event &event) {
             }
             case RGFW_mouseScroll:
             {
-                viewer.distance = clamp(viewer.distance * (1.0f + ZoomSensitivity * event.scroll.y), 0.01f, 1000.0f);
+                viewer.distance = clamp(viewer.distance * (1.0f - ZoomSensitivity * event.scroll.y), 0.01f, 1000.0f);
                 return true;
             }
             }
