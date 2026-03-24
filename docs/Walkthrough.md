@@ -59,7 +59,7 @@ Some files to note:
 # Scene Files
 Here is an example scene file with comments for explaination:
 
-```json
+```js
 {
     "Camera": {
         "type": "Viewer",    // Starting Camera type
